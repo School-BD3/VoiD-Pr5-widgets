@@ -6,8 +6,8 @@ import '../models/user.dart';
 class AppState extends ChangeNotifier {
   User? _currentUser;
 
-  final Set<String> _favoriteIds = {};
-  final List<Product> _cart = [];
+  final Set<String> _favoriteIds = <String>{};
+  final List<Product> _cart = <Product>[];
 
   User? get currentUser => _currentUser;
 
@@ -27,8 +27,10 @@ class AppState extends ChangeNotifier {
   }
 
   void toggleFavorite(String productId) {
-    if (!_favoriteIds.add(productId)) {
+    if (_favoriteIds.contains(productId)) {
       _favoriteIds.remove(productId);
+    } else {
+      _favoriteIds.add(productId);
     }
 
     notifyListeners();
@@ -40,18 +42,19 @@ class AppState extends ChangeNotifier {
   }
 
   void removeFromCart(String productId) {
-    _cart.remove(productWhere(productId));
-    notifyListeners();
-  }
+    final index = _cart.indexWhere(
+      (product) => product.id == productId,
+    );
 
-  Product? productWhere(String productId) {
-    for (final product in _cart) {
-      if (product.id == productId) return product;
+    if (index != -1) {
+      _cart.removeAt(index);
+      notifyListeners();
     }
-    return null;
   }
 
   void clearCart() {
+    if (_cart.isEmpty) return;
+
     _cart.clear();
     notifyListeners();
   }

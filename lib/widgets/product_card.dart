@@ -7,6 +7,7 @@ class ProductCard extends StatefulWidget {
   final bool initiallyFavorite;
   final ValueChanged<bool>? onFavoriteChanged;
   final VoidCallback? onTap;
+  final VoidCallback? onAddToCart;
 
   const ProductCard({
     super.key,
@@ -14,6 +15,7 @@ class ProductCard extends StatefulWidget {
     this.initiallyFavorite = false,
     this.onFavoriteChanged,
     this.onTap,
+    this.onAddToCart,
   });
 
   @override
@@ -23,7 +25,6 @@ class ProductCard extends StatefulWidget {
 class _ProductCardState extends State<ProductCard>
     with SingleTickerProviderStateMixin {
   late bool isFavorite;
-  bool isPressed = false;
 
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
@@ -189,6 +190,16 @@ class _ProductCardState extends State<ProductCard>
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
                             ),
+                      ),
+
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: widget.onAddToCart,
+                          icon: const Icon(Icons.add_shopping_cart),
+                          label: const Text('Додати до кошика'),
+                        ),
                       ),
                     ],
                   ),

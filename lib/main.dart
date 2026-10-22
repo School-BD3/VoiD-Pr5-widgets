@@ -1,9 +1,11 @@
+
 import 'package:flutter/material.dart';
 
 import 'models/product.dart';
 import 'models/user.dart';
 import 'screens/products_screen.dart';
 import 'screens/profile_screen.dart';
+import 'utils/app_state.dart';
 import 'widgets/product_card.dart';
 import 'widgets/profile_widget.dart';
 
@@ -41,6 +43,8 @@ class AppNavigation extends StatefulWidget {
 class _AppNavigationState extends State<AppNavigation> {
   int selectedIndex = 0;
 
+  final AppState appState = AppState();
+
   static const User currentUser = User(
     name: 'Олександр',
     email: 'oleksandr@example.com',
@@ -48,7 +52,7 @@ class _AppNavigationState extends State<AppNavigation> {
   );
 
   static const Product sampleProduct = Product(
-    id: 'product-1',
+    id: 'headphones',
     name: 'Бездротові навушники',
     description: 'Зручні навушники для музики та навчання.',
     price: 1299,
@@ -56,43 +60,54 @@ class _AppNavigationState extends State<AppNavigation> {
   );
 
   @override
-  Widget build(BuildContext context) {
-    final pages = [
-      _buildHome(),
-      const ProductsScreen(),
-      const ProfileScreen(),
-    ];
+  void dispose() {
+    appState.dispose();
+    super.dispose();
+  }
 
-    return Scaffold(
-      body: IndexedStack(
-        index: selectedIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Головна',
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: appState,
+      builder: (context, _) {
+        final pages = [
+          _buildHome(),
+          ProductsScreen(appState: appState),
+          const ProfileScreen(),
+        ];
+
+        return Scaffold(
+          body: IndexedStack(
+            index: selectedIndex,
+            children: pages,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag),
-            label: 'Товари',
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                selectedIndex = index;
+              });
+            },
+            destinations: [
+              const NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Головна',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.shopping_bag_outlined),
+                selectedIcon: const Icon(Icons.shopping_bag),
+                label: 'Товари (${appState.cartCount})',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Профіль',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Профіль',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -100,7 +115,20 @@ class _AppNavigationState extends State<AppNavigation> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Мій застосунок'),
-        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Row(
+                children: [
+                  const Icon(Icons.shopping_cart_outlined),
+                  const SizedBox(width: 6),
+                  Text('${appState.cartCount}'),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -130,7 +158,27 @@ class _AppNavigationState extends State<AppNavigation> {
             ),
           ),
           const SizedBox(height: 12),
-          ProductCard(product: sampleProduct),
+          ProductCard(
+            product: sampleProduct,
+            initiallyFavorite: appState.isFavorite(sampleProduct.id),
+            onFavoriteChanged: (_) {
+              appState.toggleFavorite(sampleProduct.id);
+            },
+            onAddToCart: () {
+              appState.addToCart(sampleProduct);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Товар додано до кошика'),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Обраних товарів: ${appState.favoriteIds.length}',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ],
       ),
     );

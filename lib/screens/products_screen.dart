@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../models/product.dart';
 import '../widgets/product_card.dart';
+import '../utils/app_state.dart';
 
 class ProductsScreen extends StatelessWidget {
-  const ProductsScreen({super.key});
+  final AppState appState;
+
+  const ProductsScreen({
+    super.key,
+    required this.appState,
+  });
 
   static const List<Product> products = [
     Product(
@@ -34,22 +40,28 @@ class ProductsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Каталог товарів'),
+        title: Text('Товари · Кошик: ${appState.cartCount}'),
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: products.length,
         separatorBuilder: (_, _) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
+          final product = products[index];
+
           return ProductCard(
-            product: products[index],
-            onFavoriteChanged: (favorite) {
+            product: product,
+            initiallyFavorite: appState.isFavorite(product.id),
+            onFavoriteChanged: (_) {
+              appState.toggleFavorite(product.id);
+            },
+            onAddToCart: () {
+              appState.addToCart(product);
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    favorite
-                        ? 'Додано до обраного'
-                        : 'Видалено з обраного',
+                    '${product.name} додано до кошика',
                   ),
                   duration: const Duration(seconds: 1),
                 ),
