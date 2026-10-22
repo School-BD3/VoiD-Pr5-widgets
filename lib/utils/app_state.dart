@@ -18,38 +18,55 @@ class AppState extends ChangeNotifier {
   int get cartCount => _cart.length;
 
   bool isFavorite(String productId) {
+    if (productId.trim().isEmpty) return false;
+
     return _favoriteIds.contains(productId);
   }
 
   void setCurrentUser(User user) {
+    if (user.name.trim().isEmpty || user.email.trim().isEmpty) {
+      throw ArgumentError('Ім’я та email користувача не можуть бути порожніми.');
+    }
+
     _currentUser = user;
     notifyListeners();
   }
 
   void toggleFavorite(String productId) {
-    if (_favoriteIds.contains(productId)) {
+    if (productId.trim().isEmpty) {
+      throw ArgumentError.value(
+        productId,
+        'productId',
+        'ID товару не може бути порожнім.',
+      );
+    }
+
+    if (!_favoriteIds.add(productId)) {
       _favoriteIds.remove(productId);
-    } else {
-      _favoriteIds.add(productId);
     }
 
     notifyListeners();
   }
 
   void addToCart(Product product) {
+    _validateProduct(product);
+
     _cart.add(product);
     notifyListeners();
   }
 
-  void removeFromCart(String productId) {
+  bool removeFromCart(String productId) {
+    if (productId.trim().isEmpty) return false;
+
     final index = _cart.indexWhere(
       (product) => product.id == productId,
     );
 
-    if (index != -1) {
-      _cart.removeAt(index);
-      notifyListeners();
-    }
+    if (index == -1) return false;
+
+    _cart.removeAt(index);
+    notifyListeners();
+    return true;
   }
 
   void clearCart() {
@@ -57,5 +74,19 @@ class AppState extends ChangeNotifier {
 
     _cart.clear();
     notifyListeners();
+  }
+
+  void _validateProduct(Product product) {
+    if (product.id.trim().isEmpty) {
+      throw ArgumentError('ID товару не може бути порожнім.');
+    }
+
+    if (product.name.trim().isEmpty) {
+      throw ArgumentError('Назва товару не може бути порожньою.');
+    }
+
+    if (!product.price.isFinite || product.price < 0) {
+      throw ArgumentError('Ціна товару має бути невід’ємним числом.');
+    }
   }
 }
