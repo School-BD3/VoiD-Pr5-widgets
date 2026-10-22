@@ -74,6 +74,64 @@ class _ProductCardState extends State<ProductCard>
     widget.onFavoriteChanged?.call(isFavorite);
   }
 
+  void _showImagePreview() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              InteractiveViewer(
+                minScale: 0.8,
+                maxScale: 4,
+                child: Image.network(
+                  widget.product.imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+
+                    return const SizedBox(
+                      height: 300,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox(
+                      height: 250,
+                      child: Center(
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Colors.white,
+                          size: 48,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              IconButton(
+                tooltip: 'Закрити',
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                icon: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dismissible(
@@ -116,28 +174,26 @@ class _ProductCardState extends State<ProductCard>
                   children: [
                     AspectRatio(
                       aspectRatio: 16 / 10,
-                      child: Image.network(
-                        widget.product.imageUrl,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
-
-                          return Container(
-                            color: Colors.grey.shade200,
-                            alignment: Alignment.center,
-                            child: const CircularProgressIndicator(),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey.shade200,
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.image_not_supported_outlined,
-                              size: 42,
-                            ),
-                          );
-                        },
+                      child: GestureDetector(
+                        onTap: _showImagePreview,
+                        child: Image.network(
+                          widget.product.imageUrl,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const _ShimmerPlaceholder();
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey.shade200,
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.image_not_supported_outlined,
+                                size: 42,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                     Positioned(
@@ -191,7 +247,6 @@ class _ProductCardState extends State<ProductCard>
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-
                       const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
@@ -209,6 +264,62 @@ class _ProductCardState extends State<ProductCard>
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ShimmerPlaceholder extends StatefulWidget {
+  const _ShimmerPlaceholder();
+
+  @override
+  State<_ShimmerPlaceholder> createState() =>
+      _ShimmerPlaceholderState();
+}
+
+class _ShimmerPlaceholderState extends State<_ShimmerPlaceholder>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _shimmerController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _shimmerController,
+      builder: (context, child) {
+        final position = -1.0 + 2.0 * _shimmerController.value;
+
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(position - 1, 0),
+              end: Alignment(position + 1, 0),
+              colors: [
+                Colors.grey.shade300,
+                Colors.grey.shade100,
+                Colors.grey.shade300,
+              ],
+            ).createShader(bounds);
+          },
+          child: Container(
+            color: Colors.grey.shade300,
+          ),
+        );
+      },
     );
   }
 }
