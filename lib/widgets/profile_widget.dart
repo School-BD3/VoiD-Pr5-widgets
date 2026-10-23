@@ -25,7 +25,7 @@ class ProfileWidget extends StatelessWidget {
             CircleAvatar(
               radius: isCompact ? 24 : 36,
               backgroundImage: NetworkImage(user.avatarUrl),
-              onBackgroundImageError: (_, __) {},
+              onBackgroundImageError: (_, _) {},
               child: null,
             ),
             const SizedBox(width: 16),
