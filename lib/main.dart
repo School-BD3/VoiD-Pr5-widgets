@@ -4,6 +4,8 @@ import 'screens/home_screen.dart';
 import 'screens/products_screen.dart';
 import 'screens/profile_screen.dart';
 import 'utils/app_state.dart';
+import 'utils/themes.dart';
+import 'utils/constants.dart';
 
 void main() {
   runApp(const MainApp());
@@ -16,14 +18,8 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Widgets App',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF5F6FA),
-      ),
+      title: AppConstants.appName,
+      theme: AppThemes.lightTheme,
       home: const AppNavigation(),
     );
   }
