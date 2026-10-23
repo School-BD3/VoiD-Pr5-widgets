@@ -94,6 +94,6 @@ flutter test integration_test/app_test.dart -d windows
 
 Архітектурна схема, дерево віджетів і API-контракт розміщені в папці `docs/`.
 
-![Головна сторінка](screenshots/home.png)
+![Головна сторінка](docs/screenshots/home.png)
 
 Навчальний проєкт, створений у межах практичної роботи з Flutter.
